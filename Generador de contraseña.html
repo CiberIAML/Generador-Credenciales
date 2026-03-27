@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aplicación de Regla del Producto - Generador</title>
+    <style>
+        :root {
+            --bg-body: #121212;
+            --bg-card: #1e1e1e;
+            --primary: #bb86fc; /* Morado neón suave */
+            --secondary: #03dac6; /* Cian neón */
+            --text: #e0e0e0;
+            --text-muted: #a0a0a0;
+            --border: #333333;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        /* Contenedor principal Grid para organizar los paneles */
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+            max-width: 900px;
+            width: 100%;
+        }
+
+        /* Estilo base para todos los paneles */
+        .panel {
+            background-color: var(--bg-card);
+            padding: 25px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+
+        h2 { margin-top: 0; color: var(--primary); font-weight: 600; }
+        h3 { color: var(--secondary); margin-bottom: 10px; }
+        p { line-height: 1.6; color: var(--text-muted); }
+
+        /* Estilos específicos del Generador (Panel Central) */
+        .generator-panel { text-align: center; }
+
+        .output-box {
+            background-color: #000000;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: var(--secondary);
+            margin: 20px 0;
+            border: 2px solid var(--primary);
+            min-height: 40px;
+            letter-spacing: 3px;
+            text-shadow: 0 0 5px var(--secondary);
+        }
+
+        button {
+            background-color: var(--primary);
+            color: #000000;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+        }
+
+        button:hover {
+            background-color: var(--secondary);
+            transform: translateY(-2px);
+        }
+
+        /* Estilos del cuadro de Nota (Documentación) */
+        .note-panel ul {
+            list-style: none;
+            padding: 0;
+        }
+        .note-panel li {
+            background: rgba(187, 134, 252, 0.1);
+            margin-bottom: 8px;
+            padding: 10px;
+            border-left: 3px solid var(--primary);
+            border-radius: 4px;
+        }
+
+        /* Estilos del cuadro de Clave Anterior */
+        .history-panel {
+            text-align: center;
+            border: 1px dashed var(--secondary);
+        }
+        .previous-box {
+            font-family: 'Courier New', monospace;
+            font-size: 1.2rem;
+            color: var(--text-muted);
+            margin-top: 15px;
+            font-style: italic;
+        }
+
+        /* Ajuste Responsive para pantallas medianas/grandes */
+        @media (min-width: 768px) {
+            .dashboard {
+                grid-template-columns: 2fr 1fr;
+            }
+            .note-panel { grid-column: 1 / -1; } /* La nota ocupa todo el ancho arriba */
+        }
+    </style>
+</head>
+<body>
+
+    <div class="dashboard">
+        
+        <div class="panel note-panel">
+            <h2>ACTIVIDAD DE APLICACIÓN</h2>
+            <h3>Regla del Producto Aplicada al Desarrollo de Software</h3>
+            <p>Este software demuestra el uso del principio fundamental de conteo (Regla del Producto) en la generación de credenciales seguras. El programa garantiza una alta entropía mediante la selección aleatoria <strong>sin repetición</strong> (muestreo de probabilidad) dentro de tres subconjuntos disjuntos.</p>
+            <ul>
+                <li><strong>Conjunto P1 (3 Letras A-Z):</strong> 26 × 25 × 24 = 15,600 combinaciones.</li>
+                <li><strong>Conjunto P2 (3 Dígitos 0-9):</strong> 10 × 9 × 8 = 720 combinaciones.</li>
+                <li><strong>Conjunto P3 (2 Símbolos específicos):</strong> 5 × 4 = 20 combinaciones.</li>
+            </ul>
+            <p><strong>Total Combinaciones Posibles (Espacio Muestral):</strong> 15,600 × 720 × 20 = <strong>224,640,000</strong>.</p>
+        </div>
+
+        <div class="panel generator-panel">
+            <h2>Generar Nueva Credencial</h2>
+            <div class="output-box" id="current-password">********</div>
+            <button onclick="generarCredencialCompleta()">GENERAR</button>
+            <p style="font-size: 0.8rem; margin-top: 15px;">Formato: AAA000!! (Estructura fija)</p>
+        </div>
+
+        <div class="panel history-panel">
+            <h3>Clave Generada Anteriormente</h3>
+            <p>Para referencia:</p>
+            <div class="previous-box" id="previous-password">Ninguna aún</div>
+        </div>
+
+    </div>
+
+    <script>
+        // Declaramos una variable global para guardar la clave "anterior"
+        let ultimaClave = null;
+
+        // Función auxiliar para selección sin repetición
+        function obtenerMuestraSinRepeticion(array, cantidad) {
+            let mezcla = [...array].sort(() => 0.5 - Math.random());
+            return mezcla.slice(0, cantidad);
+        }
+
+        function generarCredencialCompleta() {
+            // 1. Antes de generar la nueva, movemos la actual al cuadro "Anterior"
+            const currentDisplay = document.getElementById("current-password");
+            const previousDisplay = document.getElementById("previous-password");
+            
+            if (ultimaClave !== null) {
+                previousDisplay.innerText = ultimaClave;
+                previousDisplay.style.fontStyle = "normal";
+                previousDisplay.style.color = "#03dac6"; // Cambia color para indicar que es válida
+            }
+
+            // 2. Definición de conjuntos
+            const letras = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+            const digitos = "0123456789".split("");
+            const simbolos = ["!", "@", "#", "$", "%"];
+
+            // 3. Selección Lógica (Regla del Producto)
+            const p1 = obtenerMuestraSinRepeticion(letras, 3);
+            const p2 = obtenerMuestraSinRepeticion(digitos, 3);
+            const p3 = obtenerMuestraSinRepeticion(simbolos, 2);
+
+            // 4. Ensamblaje y Guardado
+            const nuevaClave = p1.join("") + p2.join("") + p3.join("");
+            ultimaClave = nuevaClave; // Guardamos esta para la próxima vez que se presione el botón
+            
+            // 5. Actualizar Pantalla Principal
+            currentDisplay.innerText = nuevaClave;
+        }
+    </script>
+</body>
+</html>
